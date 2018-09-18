@@ -1,0 +1,10 @@
+
+
+usar module: Data.Graph.Immutable ou Data.Graph
+
+criar nós intermediários entre todos os existentes, sendo o peso da aresta até eles o peso já existente e o peso da nova até o destino, zero, 
+que serão ignorados no output
+
+criar lista de vizinhos para cada nó, como uma lista de listas
+
+passar uma tupla (modo de transporte, linha) e adicionar o tempo de espera se o modo atual for diferente do passado ou a linha for diferente

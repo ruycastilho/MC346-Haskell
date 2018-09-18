@@ -39,7 +39,8 @@ getEndPointsInput = do
     endPointsInput <- getLine
     return $ tuplify2 $ words endPointsInput
 
-castSecondToFloat (a, b) = (a, read b :: Float)
+castSecondToFloat (a, b) = (a, newB/2)
+    where newB = read b :: Float
 castFourthToFloat (a, b, c, d) = (a, b, c, read d :: Float)
 
 tuplify2 [x, y] = (x,y)
