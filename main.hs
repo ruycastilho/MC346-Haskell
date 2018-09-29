@@ -12,8 +12,8 @@ main = do
     travelTimes <- getTravelTimeInput []
     busLines <- getBusLineInput []
     endPoints <- getEndPointsInput
-    let graph = makegraph travelTimes [] (fst endPoints)
-    -- let graph2 = addBusLine travelTimes graph
+    let graph = makegraph travelTimes [] (fst endPoints) busLines
+    let d = dijkstra graph
 
     putChar '\n'
     putStrLn "Travel times:"
@@ -24,8 +24,8 @@ main = do
     print endPoints
     putStrLn "\nGraph:"
     print graph
-    -- putStrLn "\nAdd Bus Lines:"
-    -- print graph2
+    putStrLn "\nDijkstra:"
+    print d
 
 getTravelTimeInput travelTimes = do
         travelTimeInput <- getLine
@@ -53,61 +53,48 @@ tuplify2 [x, y] = (x,y)
 tuplify4 [w, x, y, z] = (w, x, y, z)
 
 --Constroi a lista de vertices do grafo para ser utilizada no Dijkstra
-makegraph [] graph _ = graph
-makegraph (x:xs) graph start
-  |transport == "a-pe" = makegraph xs (insere_a_pe x graph start) start
+makegraph [] graph _ _= graph
+makegraph (x:xs) graph start busLines
+  |transport == "a-pe" = makegraph xs (insert_a_pe x graph start) start busLines
+  |otherwise = makegraph xs (insert_bus x graph start cost_get_in) start busLines
     where
       (begin, end, transport, time) = x
+      cost_get_in = find_bus busLines transport
 
-insere_a_pe (begin, end, transport, time) graph start
-  |graph == [] = if (begin == start) then [(0, begin, [(time, end, transport)], "", "")]
-                                     else [(1000, begin, [(time, end, transport)], "", "")]
-  |begin == beginx = ((weight, beginx, (time, end, transport):adjacency, father, ""):xs)
-  |otherwise = (weight, beginx, adjacency, father, transportx):(insere_a_pe (begin, end, transport, time) xs start)
+--Encontra o custo de subida no onibus
+find_bus (x:xs) transport
+  |(fst x) == transport = (snd x)
+  |otherwise = find_bus xs transport
+
+--Insere um no no grafo caso o meio de transporte seja a pe
+insert_a_pe (begin, end, transport, time) graph start = graph_end
     where
-      ((weight, beginx, adjacency, father, transportx):xs) = graph
+      node_begin = if (begin == start) then (0, begin, [(time, end, transport)], "", "")
+                                       else (1000, begin, [(time, end, transport)], "", "")
+      node_end = (1000, end, [], "", "")
+      graph_begin = insert_graph node_begin graph
+      graph_end = insert_graph node_end graph_begin
 
--- insertBusLine _ [] = [get_in, get_out]
--- insertBusLine (begin, end, transport, time) (x:xs)
---   |"*"++begin == node = (weight, node, ((time, ("*"++end), transport):adjacency), father, transport):xs
---   |"*"++end == node =
---     where
---       get_in = (1000, ("*"++begin), [(0, begin, ""), (time, ("*"++end), transport)], "", "")
---       get_out = (1000, ("*"++end), [(0, end, "")], "", "")
---       (weight, node, adjacency, father, transport) = x
+--Insere um no no grafo caso o meio de transporte seja onibus
+insert_bus (begin, end, transport, time) graph start cost_get_in = graph_end_bus
+  where
+    node_begin = if (begin == start) then (0, begin, [(cost_get_in, ("*"++begin), "")], "", "")
+                                     else (1000, begin, [(cost_get_in, ("*"++begin), "")], "", "")
+    node_end = (1000, end, [], "", "")
+    node_begin_bus = (1000, ("*"++begin), [(time, ("*"++end), transport)], "", "")
+    node_end_bus = (1000, ("*"++end), [(0, end, "")], "", "")
+    graph_begin = insert_graph node_begin graph
+    graph_end = insert_graph node_end graph_begin
+    graph_begin_bus = insert_graph node_begin_bus graph_end
+    graph_end_bus = insert_graph node_end_bus graph_begin_bus
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---Atualiza os trajetos com onibus, para considerar o custo de subida no onibus
--- attTimeBus [] graph = graph
--- attTimeBus (x:xs) (y:ys) = attTimeBus xs ys
---   where
---     (weight, begin, adjacency, father, transport) = y
---     adjacency_att = (verifyAdjacencyList x adjacency)
---
--- verifyAdjacencyList _ [] = []
--- verifyAdjacencyList (name, time) (timex, node, nameLine):xs
---   |name == nameLine = ((timex + (time / 2)), node, nameLine):xs
---   |otherwise = (timex, node, nameLine):(verifyAdjacencyList (name, time) xs)
+--Insere um vertice na lista de vertices do grafo
+insert_graph (weight, node, adjacency, father, transport) [] = [(weight, node, adjacency, father, transport)]
+insert_graph (weight, node, adjacency, father, transport) (x:xs)
+  |node == nodex = (weight, node, (adjacency++adjacencyx), father, transport):xs
+  |otherwise = x:(insert_graph (weight, node, adjacency, father, transport) xs)
+    where
+      (weightx, nodex, adjacencyx, fatherx, transportx) = x
 
 --Estrutura de um vertice: (peso do vertice, 'indice do no', lista de adjacencia, 'indice do pai', 'tipo de transporte')
 --Estrutua da lista de adjacencia: [(peso da aresta, 'indice do no'), ...]
