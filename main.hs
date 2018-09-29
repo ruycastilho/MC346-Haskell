@@ -78,11 +78,11 @@ insert_a_pe (begin, end, transport, time) graph start = graph_end
 --Insere um no no grafo caso o meio de transporte seja onibus
 insert_bus (begin, end, transport, time) graph start cost_get_in = graph_end_bus
   where
-    node_begin = if (begin == start) then (0, begin, [(cost_get_in, ("*"++begin), "")], "", "")
-                                     else (1000, begin, [(cost_get_in, ("*"++begin), "")], "", "")
+    node_begin = if (begin == start) then (0, begin, [(cost_get_in, ("*"++begin), transport)], "", "")
+                                     else (1000, begin, [(cost_get_in, ("*"++begin), transport)], "", "")
     node_end = (1000, end, [], "", "")
     node_begin_bus = (1000, ("*"++begin), [(time, ("*"++end), transport)], "", "")
-    node_end_bus = (1000, ("*"++end), [(0, end, "")], "", "")
+    node_end_bus = (1000, ("*"++end), [(0, end, transport)], "", "")
     graph_begin = insert_graph node_begin graph
     graph_end = insert_graph node_end graph_begin
     graph_begin_bus = insert_graph node_begin_bus graph_end
