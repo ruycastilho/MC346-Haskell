@@ -6,6 +6,7 @@
 
 import Data.Char
 import Data.Map
+import Data.List
 
 main = do
     -- getstartFinishInput $ getBusLineInput $
@@ -13,19 +14,24 @@ main = do
     busLines <- getBusLineInput []
     endPoints <- getEndPointsInput
     let graph = makegraph travelTimes [] (fst endPoints) busLines
-    let d = dijkstra graph
+    let result_dikjstra = dijkstra graph
+    let (path, time) = parseOutput result_dikjstra endPoints
 
-    putChar '\n'
-    putStrLn "Travel times:"
-    print travelTimes
-    putStrLn "\nBus Lines:"
-    print busLines
-    putStrLn "\nEnd Points:"
-    print endPoints
-    putStrLn "\nGraph:"
-    print graph
-    putStrLn "\nDijkstra:"
-    print d
+    -- putChar '\n'
+    -- putStrLn "Travel times:"
+    -- print travelTimes
+    -- putStrLn "\nBus Lines:"
+    -- print busLines
+    -- putStrLn "\nEnd Points:"
+    -- print endPoints
+    -- putStrLn "\nGraph:"
+    -- print graph
+    -- putStrLn "\nDijkstra:"
+    -- print result_dikjstra
+    -- putStrLn "\nOutput:"
+    sequence $ Data.List.map putStr (intersperse " " path)
+    putStrLn ""
+    print time
 
 getTravelTimeInput travelTimes = do
         travelTimeInput <- getLine
@@ -133,3 +139,18 @@ dijkstra' g s = (dijkstra' grafo_relax (minimo:s))
 
 --Site que gera grafos e testa o dijkstra pra verificar se o programa ta funcionando: https://www.cs.usfca.edu/~galles/visualization/Dijkstra.html
 --[(0, 's', [(10, 't'), (5, 'y')], ' ', "a-pe"), (100000, 't', [(1, 'x'), (2, 'y')], ' ', "a-pe"), (100000, 'y', [(3, 't'), (9, 'x'), (2, 'z')], ' ', "a-pe"), (100000, 'x', [(4, 'z')], ' ', "a-pe"), (100000, 'z', [(6, 'x'), (7, 's')], ' ', "a-pe")]
+
+parseOutput graph (start,end) = ((parseOutput' graph start parent [transp,name]),value)
+    where (value, name, adj, parent, transp) = findNode end graph
+
+parseOutput' [] _ _ result = result
+parseOutput' graph start end result
+    | start == end = start:result
+    | elem '*' name = parseOutput' graph start parent result
+    | otherwise = parseOutput' graph start parent (transp:(name:result))
+    where (_, name, _, parent, transp) = findNode end graph
+
+findNode end ((value, name, adj, parent, transp):xs)
+    | end == name = (value, name, adj, parent, transp)
+    | otherwise = findNode end xs
+    
