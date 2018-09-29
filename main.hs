@@ -82,13 +82,25 @@ insert_a_pe (begin, end, transport, time) graph start = graph_end
       graph_end = insert_graph node_end graph_begin
 
 --Insere um no no grafo caso o meio de transporte seja onibus
+-- insert_bus (begin, end, transport, time) graph start cost_get_in = graph_end_bus
+--   where
+--     node_begin = if (begin == start) then (0, begin, [(cost_get_in, ("*"++begin), transport)], "", "")
+--                                      else (1000, begin, [(cost_get_in, ("*"++begin), transport)], "", "")
+--     node_end = (1000, end, [], "", "")
+--     node_begin_bus = (1000, ("*"++begin), [(time, ("*"++end), transport)], "", "")
+--     node_end_bus = (1000, ("*"++end), [(0, end, transport)], "", "")
+--     graph_begin = insert_graph node_begin graph
+--     graph_end = insert_graph node_end graph_begin
+--     graph_begin_bus = insert_graph node_begin_bus graph_end
+--     graph_end_bus = insert_graph node_end_bus graph_begin_bus
+
 insert_bus (begin, end, transport, time) graph start cost_get_in = graph_end_bus
   where
-    node_begin = if (begin == start) then (0, begin, [(cost_get_in, ("*"++begin), transport)], "", "")
-                                     else (1000, begin, [(cost_get_in, ("*"++begin), transport)], "", "")
+    node_begin = if (begin == start) then (0, begin, [(cost_get_in, "*"++begin++transport, transport)], "", "")
+                                     else (1000, begin, [(cost_get_in, "*"++begin++transport, transport)], "", "")
     node_end = (1000, end, [], "", "")
-    node_begin_bus = (1000, ("*"++begin), [(time, ("*"++end), transport)], "", "")
-    node_end_bus = (1000, ("*"++end), [(0, end, transport)], "", "")
+    node_begin_bus = (1000, "*"++begin++transport, [(time, "*"++end++transport, transport)], "", "")
+    node_end_bus = (1000, "*"++end++transport, [(0, end, transport)], "", "")
     graph_begin = insert_graph node_begin graph
     graph_end = insert_graph node_end graph_begin
     graph_begin_bus = insert_graph node_begin_bus graph_end
@@ -153,4 +165,3 @@ parseOutput' graph start end result
 findNode end ((value, name, adj, parent, transp):xs)
     | end == name = (value, name, adj, parent, transp)
     | otherwise = findNode end xs
-    
