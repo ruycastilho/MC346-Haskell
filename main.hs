@@ -6,7 +6,7 @@
 
 import Data.Char
 import Data.Map
-import Data.List
+import Data.List as L
 
 main = do
     -- getstartFinishInput $ getBusLineInput $
@@ -16,6 +16,7 @@ main = do
     let graph = makegraph travelTimes [] (fst endPoints) busLines
     let result_dikjstra = dijkstra graph
     let (path, time) = parseOutput result_dikjstra endPoints
+    let final = dropStar path "" "" (snd endPoints)
 
     -- putChar '\n'
     -- putStrLn "Travel times:"
@@ -28,8 +29,10 @@ main = do
     -- print graph
     -- putStrLn "\nDijkstra:"
     -- print result_dikjstra
-    -- putStrLn "\nOutput:"
-    sequence $ Data.List.map putStr (intersperse " " path)
+    putStrLn "\nPath:"
+    sequence $ L.map putStr (L.intersperse " " path)
+    putStrLn "\nOutput:"
+    sequence $ L.map putStr (L.intersperse " " final)
     putStrLn ""
     print time
 
@@ -38,18 +41,18 @@ getTravelTimeInput travelTimes = do
         if Prelude.null travelTimeInput
             then return travelTimes
             else do
-                getTravelTimeInput ((castFourthToFloat $ tuplify4 $ words travelTimeInput):travelTimes)
+                getTravelTimeInput ((castFourthToFloat $ tuplify4 $ L.words travelTimeInput):travelTimes)
 
 getBusLineInput busLines= do
     busLineInput <- getLine
     if Prelude.null busLineInput
         then return busLines
         else do
-            getBusLineInput ((castSecondToFloat $ tuplify2 $ words busLineInput):busLines)
+            getBusLineInput ((castSecondToFloat $ tuplify2 $ L.words busLineInput):busLines)
 
 getEndPointsInput = do
     endPointsInput <- getLine
-    return $ tuplify2 $ words endPointsInput
+    return $ tuplify2 $ L.words endPointsInput
 
 castSecondToFloat (a, b) = (a, newB/2)
     where newB = read b :: Float
@@ -82,25 +85,13 @@ insert_a_pe (begin, end, transport, time) graph start = graph_end
       graph_end = insert_graph node_end graph_begin
 
 --Insere um no no grafo caso o meio de transporte seja onibus
--- insert_bus (begin, end, transport, time) graph start cost_get_in = graph_end_bus
---   where
---     node_begin = if (begin == start) then (0, begin, [(cost_get_in, ("*"++begin), transport)], "", "")
---                                      else (1000, begin, [(cost_get_in, ("*"++begin), transport)], "", "")
---     node_end = (1000, end, [], "", "")
---     node_begin_bus = (1000, ("*"++begin), [(time, ("*"++end), transport)], "", "")
---     node_end_bus = (1000, ("*"++end), [(0, end, transport)], "", "")
---     graph_begin = insert_graph node_begin graph
---     graph_end = insert_graph node_end graph_begin
---     graph_begin_bus = insert_graph node_begin_bus graph_end
---     graph_end_bus = insert_graph node_end_bus graph_begin_bus
-
 insert_bus (begin, end, transport, time) graph start cost_get_in = graph_end_bus
   where
-    node_begin = if (begin == start) then (0, begin, [(cost_get_in, "*"++begin++transport, transport)], "", "")
-                                     else (1000, begin, [(cost_get_in, "*"++begin++transport, transport)], "", "")
+    node_begin = if (begin == start) then (0, begin, [(cost_get_in, begin++"*"++transport, transport)], "", "")
+                                     else (1000, begin, [(cost_get_in, begin++"*"++transport, transport)], "", "")
     node_end = (1000, end, [], "", "")
-    node_begin_bus = (1000, "*"++begin++transport, [(time, "*"++end++transport, transport)], "", "")
-    node_end_bus = (1000, "*"++end++transport, [(0, end, transport)], "", "")
+    node_begin_bus = (1000, begin++"*"++transport, [(time, end++"*"++transport, transport)], "", "")
+    node_end_bus = (1000, end++"*"++transport, [(0, end, transport)], "", "")
     graph_begin = insert_graph node_begin graph
     graph_end = insert_graph node_end graph_begin
     graph_begin_bus = insert_graph node_begin_bus graph_end
@@ -145,7 +136,7 @@ dijkstra g = dijkstra' g []
 dijkstra' [] s = s
 dijkstra' g s = (dijkstra' grafo_relax (minimo:s))
   where
-    minimo = minimum g
+    minimo = L.minimum g
     g_sem_minimo = Prelude.filter (/= minimo) g
     grafo_relax = loop_relax minimo (trd minimo) g_sem_minimo
 
@@ -158,10 +149,22 @@ parseOutput graph (start,end) = ((parseOutput' graph start parent [transp,name])
 parseOutput' [] _ _ result = result
 parseOutput' graph start end result
     | start == end = start:result
-    | elem '*' name = parseOutput' graph start parent result
+--    | elem '*' name = parseOutput' graph start parent result
     | otherwise = parseOutput' graph start parent (transp:(name:result))
     where (_, name, _, parent, transp) = findNode end graph
 
 findNode end ((value, name, adj, parent, transp):xs)
     | end == name = (value, name, adj, parent, transp)
     | otherwise = findNode end xs
+
+dropStar (x:[]) _ _ _ = [x]
+dropStar (x1:x2:xs) transp father end
+  |(elem '*' x1) && (name == end) = [name]
+  |(elem '*' x1) && ((x2 /= transp) || (name == father))  = dropStar xs x2 name end
+  |(elem '*' x1) && (x2 == transp) = (name:(x2:(dropStar xs x2 name end)))
+  |otherwise = (x1:(x2:(dropStar xs x2 x1 end)))
+    where (name, _) = L.splitAt (nsplit x1 0) x1
+
+nsplit (x:xs) count
+  |x == '*' = count
+  |otherwise = nsplit xs (count + 1)
