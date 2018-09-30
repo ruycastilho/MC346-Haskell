@@ -44,11 +44,9 @@ getEndPointsInput = do
     return (a, b)
 
 -- Dijkstra
---Estrutura de um vértice: (peso do vértice, 'índice do no', lista de adjacência, 'índice do pai', 'tipo de transporte')
---Estrutura da lista de adjacência: [(peso da aresta, 'índice do no'), ...]
---Estrutura da lista de vértices s: [(peso do vertice, 'índice do vertice', pai do vértice), ...]
---Site que gera grafos e testa o dijkstra pra verificar se o programa está funcionando: https://www.cs.usfca.edu/~galles/visualization/Dijkstra.html
---[(0, 's', [(10, 't'), (5, 'y')], ' ', "a-pe"), (100000, 't', [(1, 'x'), (2, 'y')], ' ', "a-pe"), (100000, 'y', [(3, 't'), (9, 'x'), (2, 'z')], ' ', "a-pe"), (100000, 'x', [(4, 'z')], ' ', "a-pe"), (100000, 'z', [(6, 'x'), (7, 's')], ' ', "a-pe")]
+--Estrutura de um vértice: (peso do vértice, indice do no, lista de adjacencia, indice do pai, tipo de transporte)
+--Estrutura da lista de adjacência: [(peso da aresta, indice do no, tipo de transporte), ...]
+--Estrutura da lista de vértices s: [(peso do vertice, indice do vertice, lista de adjacencia, indice do pai, tipo de transporte), ...]
 
 --Constroi a lista de vértices do grafo para ser utilizada no Dijkstra
 makegraph [] graph _ _= graph
@@ -90,10 +88,9 @@ insert_graph (weight, node, adjacency, father, transport) (x:xs)
       (weightx, nodex, adjacencyx, fatherx, transportx) = x
 
 -- Função relax
--- (nu, pu, lau, piu) = u -> vertice u cuja lista de adjacencia esta sendo relaxada
--- (nv, pv) = v -> vertice adjacente a u que esta sendo relaxado
--- (nx, px, lax, pix):xs = g -> grafo g
--- Exemplo relax (5, 'u', [(2, 'v')], ' ') (2, 'v') [(9, 'v', [(3, 'j')], ' '), (3, 'a', [(5, 'r')], ' '), (10, 'b', [(3, 't')], ' ')]
+-- (pu, nu, lau, piu, typeu) = u -> vertice u cuja lista de adjacencia esta sendo relaxada
+-- (pv, nv, transport) = v -> vertice adjacente a u que esta sendo relaxado
+-- (px, nx, lax, pix, typex):xs = g -> grafo g
 relax _ _ [] = []
 relax (pu, nu, lau, piu, typeu) (pv, nv, transport) ((px, nx, lax, pix, typex):xs)
   |nv == nx = if(px > (pu + pv)) then ((pu + pv), nx, lax, nu, transport):xs else (px, nx, lax, pix, typex):xs
@@ -132,11 +129,11 @@ find_bus (x:xs) transport
 
 -- Retira os nos artificiais da saída
 dropStar (x:[]) _ _ _ = [x]
-dropStar (x1:x2:xs) transp father end
+dropStar (x1:x2:x3:xs) transp father end
   |(elem '*' x1) && (name == end) = [name]
-  |(elem '*' x1) && ((x2 /= transp) || (name == father))  = dropStar xs x2 name end
-  |(elem '*' x1) && (x2 == transp) = (name:(x2:(dropStar xs x2 name end)))
-  |otherwise = (x1:(x2:(dropStar xs x2 x1 end)))
+  |(elem '*' x1) && ((x2 /= transp) || (name == father) || (name == x3))  = dropStar (x3:xs) x2 name end
+  |(elem '*' x1) && (x2 == transp) = (name:(x2:(dropStar (x3:xs) x2 name end)))
+  |otherwise = (x1:(x2:(dropStar (x3:xs) x2 x1 end)))
     where (name, _) = L.splitAt (fromJust $ elemIndex '*' x1) x1
 
 -- Formatação da saída

@@ -1,47 +1,15 @@
-a c linha-370 0.1
+a b linha-370 0.1
+b c a-pe 0.1
 c d linha-370 0.2
+d e linha-370 0.3
+e f a-pe 0.1
 
 linha-370 15
 linha-510 12
 
-a d
+a f
 
-(14.400001,"c",[],"*clinha-510","linha-510")
-(14.400001,"*clinha-510",[(0.0,"c","linha-510")],"*blinha-510","linha-510")
-(14.3,"*blinha-510",[(0.1,"*clinha-510","linha-510")],"b","linha-510")
-(8.3,"b",[(6.0,"*blinha-510","linha-510")],"*blinha-370","linha-370")
-(8.3,"*blinha-370",[(0.0,"b","linha-370")],"*alinha-370","linha-370")
-(7.5,"*alinha-370",[(0.8,"*blinha-370","linha-370")],"a","linha-370")
-(0.0,"a",[(7.5,"*alinha-370","linha-370")],"","")
+a linha-370 b linha-370 c linha-370 c a-pe d
+8.099999
 
-(8.400001,"c",[],"*clinha-370","linha-370")
-(8.400001,"*clinha-370",[(0.0,"c","linha-370")],"*blinha-370","linha-370")
-(8.3,"b",[(7.5,"*blinha-370","linha-370")],"*blinha-370","linha-370")
-(8.3,"*blinha-370",[(0.0,"b","linha-370"),(0.1,"*clinha-370","linha-370")],"*alinha-370","linha-370")
-(7.5,"*alinha-370",[(0.8,"*blinha-370","linha-370")],"a","linha-370")
-(0.0,"a",[(7.5,"*alinha-370","linha-370")],"","")
-
-Travel times:
-[("c","d","linha-370",0.2),("b","c","linha-370",0.1),("a","b","a-pe",0.8)]
-
-Bus Lines:
-[("linha-510",6.0),("linha-370",7.5)]
-
-End Points:
-("a","d")
-
-Graph:
-[(1000.0,"c",[(7.5,"c*linha-370","linha-370")],"",""),(1000.0,"d",[],"",""),(1000.0,"c*linha-370",[(0.0,"c","linha-370"),(0.2,"d*linha-370","linha-370")],"",""),(1000.0,"d*linha-370",[(0.0,"d","linha-370")],"",""),(1000.0,"b",[(7.5,"b*linha-370","linha-370")],"",""),(1000.0,"b*linha-370",[(0.1,"c*linha-370","linha-370")],"",""),(0.0,"a",[(0.8,"b","a-pe")],"","")]
-
-Dijkstra:
-(8.6,"d",[],"d*linha-370","linha-370")
-(8.6,"d*linha-370",[(0.0,"d","linha-370")],"c*linha-370","linha-370")
-(8.400001,"c",[(7.5,"c*linha-370","linha-370")],"c*linha-370","linha-370")
-(8.400001,"c*linha-370",[(0.0,"c","linha-370"),(0.2,"d*linha-370","linha-370")],"b*linha-370","linha-370")
-(8.3,"b*linha-370",[(0.1,"c*linha-370","linha-370")],"b","linha-370")
-(0.8,"b",[(7.5,"b*linha-370","linha-370")],"a","a-pe")
-(0.0,"a",[(0.8,"b","a-pe")],"","")
-
-Output:
-a a-pe b linha-370 b*linha-370 linha-370 c*linha-370 linha-370 d*linha-370 linha-370 d
-8.6
+["a","linha-370","a*linha-370","linha-370","b*linha-370","linha-370","c*linha-370","linha-370","c","a-pe","d"]
