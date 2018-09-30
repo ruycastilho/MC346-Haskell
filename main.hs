@@ -44,9 +44,9 @@ getEndPointsInput = do
     return (a, b)
 
 -- Dijkstra
---Estrutura de um vertice: (peso do vertice, 'indice do no', lista de adjacencia, 'indice do pai', 'tipo de transporte')
---Estrutua da lista de adjacencia: [(peso da aresta, 'indice do no'), ...]
---Estrutura da lista de vertices s: [(peso do vertice, 'indice do vertice', pai do vertice), ...]
+--Estrutura de um vértice: (peso do vértice, 'índice do no', lista de adjacência, 'índice do pai', 'tipo de transporte')
+--Estrutura da lista de adjacência: [(peso da aresta, 'índice do no'), ...]
+--Estrutura da lista de vértices s: [(peso do vertice, 'índice do vertice', pai do vértice), ...]
 --Site que gera grafos e testa o dijkstra pra verificar se o programa está funcionando: https://www.cs.usfca.edu/~galles/visualization/Dijkstra.html
 --[(0, 's', [(10, 't'), (5, 'y')], ' ', "a-pe"), (100000, 't', [(1, 'x'), (2, 'y')], ' ', "a-pe"), (100000, 'y', [(3, 't'), (9, 'x'), (2, 'z')], ' ', "a-pe"), (100000, 'x', [(4, 'z')], ' ', "a-pe"), (100000, 'z', [(6, 'x'), (7, 's')], ' ', "a-pe")]
 
@@ -68,7 +68,7 @@ insert_a_pe (begin, end, transport, time) graph start = graph_end
       graph_begin = insert_graph node_begin graph
       graph_end = insert_graph node_end graph_begin
 
---Insere um nó no grafo caso o meio de transporte seja ônibus
+--Insere um nó no grafo caso o meio de transporte seja ônibus; Cria nó artificiais da forma: <nome>*<linha>
 insert_bus (begin, end, transport, time) graph start cost_get_in = graph_end_bus
   where
     node_begin = if (begin == start) then (0, begin, [(cost_get_in, begin++"*"++transport, transport)], "", "")
