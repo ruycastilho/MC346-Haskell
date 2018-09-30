@@ -1,5 +1,4 @@
--- MC 346
--- Haskell Project
+-- MC 346 - Haskell Project
 -- Group:
 --  Ruy Castilho Barrichelo RA 177012
 --  Vitor Kaoru Aoki        RA 178474
@@ -7,9 +6,10 @@
 import Data.Char
 import Data.Map
 import Data.List as L
+import Data.Maybe
 
+-- Main e I/O
 main = do
-    -- getstartFinishInput $ getBusLineInput $
     travelTimes <- getTravelTimeInput []
     busLines <- getBusLineInput []
     endPoints <- getEndPointsInput
@@ -18,20 +18,6 @@ main = do
     let (path, time) = parseOutput result_dikjstra endPoints
     let final = dropStar path "" "" (snd endPoints)
 
-    -- putChar '\n'
-    -- putStrLn "Travel times:"
-    -- print travelTimes
-    -- putStrLn "\nBus Lines:"
-    -- print busLines
-    -- putStrLn "\nEnd Points:"
-    -- print endPoints
-    -- putStrLn "\nGraph:"
-    -- print graph
-    -- putStrLn "\nDijkstra:"
-    -- print result_dikjstra
-    putStrLn "\nPath:"
-    sequence $ L.map putStr (L.intersperse " " path)
-    putStrLn "\nOutput:"
     sequence $ L.map putStr (L.intersperse " " final)
     putStrLn ""
     print time
@@ -41,27 +27,30 @@ getTravelTimeInput travelTimes = do
         if Prelude.null travelTimeInput
             then return travelTimes
             else do
-                getTravelTimeInput ((castFourthToFloat $ tuplify4 $ L.words travelTimeInput):travelTimes)
+                let [a,b,c,d] = L.words travelTimeInput
+                getTravelTimeInput ((a,b,c, read d :: Float):travelTimes)
 
 getBusLineInput busLines= do
     busLineInput <- getLine
     if Prelude.null busLineInput
         then return busLines
         else do
-            getBusLineInput ((castSecondToFloat $ tuplify2 $ L.words busLineInput):busLines)
+            let [a,b] = L.words busLineInput
+            getBusLineInput ((a, (read b :: Float)/2):busLines)
 
 getEndPointsInput = do
     endPointsInput <- getLine
-    return $ tuplify2 $ L.words endPointsInput
+    let [a, b] = L.words endPointsInput
+    return (a, b)
 
-castSecondToFloat (a, b) = (a, newB/2)
-    where newB = read b :: Float
-castFourthToFloat (a, b, c, d) = (a, b, c, read d :: Float)
+-- Dijkstra
+--Estrutura de um vertice: (peso do vertice, 'indice do no', lista de adjacencia, 'indice do pai', 'tipo de transporte')
+--Estrutua da lista de adjacencia: [(peso da aresta, 'indice do no'), ...]
+--Estrutura da lista de vertices s: [(peso do vertice, 'indice do vertice', pai do vertice), ...]
+--Site que gera grafos e testa o dijkstra pra verificar se o programa está funcionando: https://www.cs.usfca.edu/~galles/visualization/Dijkstra.html
+--[(0, 's', [(10, 't'), (5, 'y')], ' ', "a-pe"), (100000, 't', [(1, 'x'), (2, 'y')], ' ', "a-pe"), (100000, 'y', [(3, 't'), (9, 'x'), (2, 'z')], ' ', "a-pe"), (100000, 'x', [(4, 'z')], ' ', "a-pe"), (100000, 'z', [(6, 'x'), (7, 's')], ' ', "a-pe")]
 
-tuplify2 [x, y] = (x,y)
-tuplify4 [w, x, y, z] = (w, x, y, z)
-
---Constroi a lista de vertices do grafo para ser utilizada no Dijkstra
+--Constroi a lista de vértices do grafo para ser utilizada no Dijkstra
 makegraph [] graph _ _= graph
 makegraph (x:xs) graph start busLines
   |transport == "a-pe" = makegraph xs (insert_a_pe x graph start) start busLines
@@ -70,12 +59,7 @@ makegraph (x:xs) graph start busLines
       (begin, end, transport, time) = x
       cost_get_in = find_bus busLines transport
 
---Encontra o custo de subida no onibus
-find_bus (x:xs) transport
-  |(fst x) == transport = (snd x)
-  |otherwise = find_bus xs transport
-
---Insere um no no grafo caso o meio de transporte seja a pe
+--Insere um nó no grafo caso o meio de transporte seja a pé
 insert_a_pe (begin, end, transport, time) graph start = graph_end
     where
       node_begin = if (begin == start) then (0, begin, [(time, end, transport)], "", "")
@@ -84,7 +68,7 @@ insert_a_pe (begin, end, transport, time) graph start = graph_end
       graph_begin = insert_graph node_begin graph
       graph_end = insert_graph node_end graph_begin
 
---Insere um no no grafo caso o meio de transporte seja onibus
+--Insere um nó no grafo caso o meio de transporte seja ônibus
 insert_bus (begin, end, transport, time) graph start cost_get_in = graph_end_bus
   where
     node_begin = if (begin == start) then (0, begin, [(cost_get_in, begin++"*"++transport, transport)], "", "")
@@ -97,7 +81,7 @@ insert_bus (begin, end, transport, time) graph start cost_get_in = graph_end_bus
     graph_begin_bus = insert_graph node_begin_bus graph_end
     graph_end_bus = insert_graph node_end_bus graph_begin_bus
 
---Insere um vertice na lista de vertices do grafo
+--Insere um vértice na lista de vértices do grafo
 insert_graph (weight, node, adjacency, father, transport) [] = [(weight, node, adjacency, father, transport)]
 insert_graph (weight, node, adjacency, father, transport) (x:xs)
   |node == nodex = (weight, node, (adjacency++adjacencyx), father, transport):xs
@@ -105,32 +89,23 @@ insert_graph (weight, node, adjacency, father, transport) (x:xs)
     where
       (weightx, nodex, adjacencyx, fatherx, transportx) = x
 
---Estrutura de um vertice: (peso do vertice, 'indice do no', lista de adjacencia, 'indice do pai', 'tipo de transporte')
---Estrutua da lista de adjacencia: [(peso da aresta, 'indice do no'), ...]
---Estrutura da lista de vertices s: [(peso do vertice, 'indice do vertice', pai do vertice), ...]
-
---obtem o terceiro elemento de uma tupla
-trd (_,_,a,_,_) = a
-
---funcao relax
---(nu, pu, lau, piu) = u -> vertice u cuja lista de adjacencia esta sendo relaxada
---(nv, pv) = v -> vertice adjacente a u que esta sendo relaxado
---(nx, px, lax, pix):xs = g -> grafo g
---Exemplo relax (5, 'u', [(2, 'v')], ' ') (2, 'v') [(9, 'v', [(3, 'j')], ' '), (3, 'a', [(5, 'r')], ' '), (10, 'b', [(3, 't')], ' ')]
+-- Função relax
+-- (nu, pu, lau, piu) = u -> vertice u cuja lista de adjacencia esta sendo relaxada
+-- (nv, pv) = v -> vertice adjacente a u que esta sendo relaxado
+-- (nx, px, lax, pix):xs = g -> grafo g
+-- Exemplo relax (5, 'u', [(2, 'v')], ' ') (2, 'v') [(9, 'v', [(3, 'j')], ' '), (3, 'a', [(5, 'r')], ' '), (10, 'b', [(3, 't')], ' ')]
 relax _ _ [] = []
 relax (pu, nu, lau, piu, typeu) (pv, nv, transport) ((px, nx, lax, pix, typex):xs)
   |nv == nx = if(px > (pu + pv)) then ((pu + pv), nx, lax, nu, transport):xs else (px, nx, lax, pix, typex):xs
   |otherwise = (px, nx, lax, pix, typex):(retorno)
-    where
-      retorno = relax (pu, nu, lau, piu, typeu) (pv, nv, transport) xs
+    where retorno = relax (pu, nu, lau, piu, typeu) (pv, nv, transport) xs
 
---realiza o loop do Dijkstra onde sao relaxadas todos os vertices adjacentes a u
+-- Realiza o loop do Dijkstra onde são relaxadas todos os vértices adjacentes a u
 loop_relax u [] g = g
 loop_relax u (x:xs) g = loop_relax u xs g'
-  where
-    g' = relax u x g
+  where g' = relax u x g
 
---Funcao Dijkstra
+-- Função Dijkstra
 dijkstra g = dijkstra' g []
 
 dijkstra' [] s = s
@@ -140,31 +115,36 @@ dijkstra' g s = (dijkstra' grafo_relax (minimo:s))
     g_sem_minimo = Prelude.filter (/= minimo) g
     grafo_relax = loop_relax minimo (trd minimo) g_sem_minimo
 
---Site que gera grafos e testa o dijkstra pra verificar se o programa ta funcionando: https://www.cs.usfca.edu/~galles/visualization/Dijkstra.html
---[(0, 's', [(10, 't'), (5, 'y')], ' ', "a-pe"), (100000, 't', [(1, 'x'), (2, 'y')], ' ', "a-pe"), (100000, 'y', [(3, 't'), (9, 'x'), (2, 'z')], ' ', "a-pe"), (100000, 'x', [(4, 'z')], ' ', "a-pe"), (100000, 'z', [(6, 'x'), (7, 's')], ' ', "a-pe")]
+-- Funções auxiliares
 
-parseOutput graph (start,end) = ((parseOutput' graph start parent [transp,name]),value)
-    where (value, name, adj, parent, transp) = findNode end graph
+-- Obtem o terceiro elemento de uma tupla
+trd (_,_,a,_,_) = a
 
-parseOutput' [] _ _ result = result
-parseOutput' graph start end result
-    | start == end = start:result
---    | elem '*' name = parseOutput' graph start parent result
-    | otherwise = parseOutput' graph start parent (transp:(name:result))
-    where (_, name, _, parent, transp) = findNode end graph
-
+-- Encontra o no atual no grafo resultante de acordo com o nome
 findNode end ((value, name, adj, parent, transp):xs)
     | end == name = (value, name, adj, parent, transp)
     | otherwise = findNode end xs
 
+-- Encontra o custo de subida no onibus
+find_bus (x:xs) transport
+  |(fst x) == transport = (snd x)
+  |otherwise = find_bus xs transport
+
+-- Retira os nos artificiais da saída
 dropStar (x:[]) _ _ _ = [x]
 dropStar (x1:x2:xs) transp father end
   |(elem '*' x1) && (name == end) = [name]
   |(elem '*' x1) && ((x2 /= transp) || (name == father))  = dropStar xs x2 name end
   |(elem '*' x1) && (x2 == transp) = (name:(x2:(dropStar xs x2 name end)))
   |otherwise = (x1:(x2:(dropStar xs x2 x1 end)))
-    where (name, _) = L.splitAt (nsplit x1 0) x1
+    where (name, _) = L.splitAt (fromJust $ elemIndex '*' x1) x1
 
-nsplit (x:xs) count
-  |x == '*' = count
-  |otherwise = nsplit xs (count + 1)
+-- Formatação da saída
+parseOutput graph (start,end) = ((parseOutput' graph start parent [transp,name]),value)
+    where (value, name, adj, parent, transp) = findNode end graph
+
+parseOutput' [] _ _ result = result
+parseOutput' graph start end result
+    | start == end = start:result
+    | otherwise = parseOutput' graph start parent (transp:(name:result))
+    where (_, name, _, parent, transp) = findNode end graph
